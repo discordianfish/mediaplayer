@@ -1,0 +1,14 @@
+FROM resin/%%RESIN_MACHINE_NAME%%-python
+
+ENV REGION=de
+ENV POPCORNTIME_VERSION=0.3.9
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get install -y dropbear openvpn curl xz-utils \
+    && curl -L https://vpn.ht/en/openvpn-config/$REGION/128 > /etc/vpn.ht.ovpn \
+    && curl -L https://get.popcorntime.sh/build/Popcorn-Time-$POPCORNTIME_VERSION-Linux-64.tar.xz \
+     | tar -C /usr/src -xJf - \
+    && apt-get purge curl xz-utils && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ADD run /bin/run
+
+ENTRYPOINT [ "/bin/run" ]
