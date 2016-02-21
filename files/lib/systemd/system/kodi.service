@@ -1,0 +1,12 @@
+[Unit]
+Description = Kodi Media Center
+After=systemd-user-sessions.service network.target sound.target
+
+[Service]
+User = user
+Group = user
+Type = simple
+ExecStart=/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt
+
+[Install]
+WantedBy=multi-user.target

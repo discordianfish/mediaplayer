@@ -1,14 +1,22 @@
-FROM resin/%%RESIN_MACHINE_NAME%%-python
+FROM resin/%%RESIN_MACHINE_NAME%%-debian
+ENV INITSYSTEM on
 
 ENV REGION=de
-ENV POPCORNTIME_VERSION=0.3.9
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y dropbear openvpn curl xz-utils \
-    && curl -L https://vpn.ht/en/openvpn-config/$REGION/128 > /etc/vpn.ht.ovpn \
-    && curl -L https://get.popcorntime.sh/build/Popcorn-Time-$POPCORNTIME_VERSION-Linux-64.tar.xz \
-     | tar -C /usr/src -xJf - \
-    && apt-get purge curl xz-utils && apt-get clean && rm -rf /var/lib/apt/lists/*
+ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-ADD run /bin/run
+COPY stretch.pref /etc/apt/preferences.d/
+RUN sed 's/jessie/stretch/' /etc/apt/sources.list > /etc/apt/sources.list.d/stretch.list \
+    && apt-get -qy update && apt-get install -qy dropbear curl openvpn xorg feh dbus dbus-x11 iptables \
+    && apt-get -qy install -t stretch kodi \
+    && for f in /usr/lib/arm-linux-gnueabihf/libEGL.so.*; do ln -sf /opt/vc/lib/libEGL.so $f; done \
+    && for f in /usr/lib/arm-linux-gnueabihf/libGLESv2.so.*; do ln -sf /opt/vc/lib/libGLESv2.so $f; done \
+    && curl -L https://vpn.ht/en/openvpn-config/$REGION/128 \
+    | sed 's|\(auth-user-pass\).*|\1 /etc/vpn.pass|' > /etc/openvpn/vpn.ht.conf \
+    && useradd -m -G video,audio user \
+    && sed -i 's/allowed_users=.*/allowed_users=anybody/' /etc/X11/Xwrapper.config \
+    && systemctl enable openvpn@vpn.ht
 
-ENTRYPOINT [ "/bin/run" ]
+COPY files/ /
+RUN systemctl enable kodi
+
+CMD [ "/setup.sh" ]
