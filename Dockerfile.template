@@ -12,7 +12,7 @@ RUN echo "deb http://archive.mene.za.net/raspbian jessie contrib" > /etc/apt/sou
     && for f in /usr/lib/arm-linux-gnueabihf/libGLESv2.so.*; do ln -sf /opt/vc/lib/libGLESv2.so $f; done \
     && curl -L https://vpn.ht/en/openvpn-config/$REGION/128 \
     | sed 's|\(auth-user-pass\).*|\1 /etc/vpn.pass|' > /etc/openvpn/vpn.ht.conf \
-    && useradd -m -G video,audio user \
+    && useradd -m -G video,audio,input,dialout,plugdev,tty user \
     && sed -i 's/allowed_users=.*/allowed_users=anybody/' /etc/X11/Xwrapper.config \
     && systemctl enable openvpn@vpn.ht
 
